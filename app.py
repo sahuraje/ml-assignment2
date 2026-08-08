@@ -58,4 +58,6 @@ if uploaded:
     st.write(confusion_matrix(y_true, preds))  # rows=actual, cols=predicted
 
     st.subheader("Classification Report")
-    st.text(classification_report(y_true, preds))  # per-class precision/recall/f1
+    report_dict = classification_report(y_true, preds, output_dict=True)  # get as dict instead of plain text
+    report_df = pd.DataFrame(report_dict).transpose().round(3)  # convert to table, round numbers
+    st.dataframe(report_df, use_container_width=True)  # nice scrollable/formatted table
