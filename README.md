@@ -1,0 +1,50 @@
+# ML Assignment 2 - Classification Model Comparison
+
+## a. Problem Statement
+
+Customer churn is a major concern for subscription-based businesses such as telecom operators. This project builds and compares multiple machine learning classification models to predict whether a customer will churn (leave the service) based on their account and usage attributes. The goal is to identify which model performs best for this business problem and deploy it as an interactive web application for real-time evaluation.
+
+## b. Dataset Description
+
+- **Source**: Kaggle - Telco Customer Churn (IBM Sample Dataset), by blastchar
+- **Link**: https://www.kaggle.com/datasets/blastchar/telco-customer-churn
+- **Instances**: 7,043 customer records
+- **Features**: 19 input features after dropping the identifier column, including customer demographics (gender, SeniorCitizen, Partner, Dependents), account information (tenure, Contract, PaymentMethod, MonthlyCharges, TotalCharges), and service usage (PhoneService, InternetService, OnlineSecurity, TechSupport, StreamingTV, StreamingMovies, etc.)
+- **Target variable**: `Churn` (Yes/No, encoded as 1/0) - binary classification
+- **Preprocessing**: Categorical columns label-encoded, missing `TotalCharges` values dropped, 80/20 train-test split with stratification, features scaled for distance-based models (Logistic Regression, kNN)
+
+## c. GitHub Repository Link
+
+https://github.com/sahuraje/ml-assignment2
+
+## d. Models Used
+
+| ML Model Name | Accuracy | AUC | Precision | Recall | F1 | MCC |
+|---|---|---|---|---|---|---|
+| Logistic Regression | 0.7939 | 0.8345 | 0.6243 | 0.5642 | 0.5927 | 0.4562 |
+| Decision Tree | 0.7129 | 0.6466 | 0.4631 | 0.5027 | 0.4821 | 0.2843 |
+| kNN | 0.7484 | 0.7712 | 0.5265 | 0.5321 | 0.5293 | 0.3576 |
+| Naive Bayes | 0.7356 | 0.8121 | 0.5018 | 0.7273 | 0.5939 | 0.4229 |
+| Random Forest | 0.7797 | 0.8109 | 0.6096 | 0.4759 | 0.5345 | 0.3982 |
+
+## Observations
+
+| ML Model Name | Observation about model performance |
+|---|---|
+| Logistic Regression | Best overall balance between precision and recall, and the highest MCC, indicating it distinguishes both classes reliably despite the dataset's class imbalance. |
+| Decision Tree | Weakest performer across all metrics, likely overfitting to training data without pruning or depth control, resulting in poor generalization to the test set. |
+| kNN | Moderate performance overall; sensitive to feature scaling and the choice of k, but reasonably balanced precision and recall. |
+| Naive Bayes | Highest recall by a wide margin, meaning it catches most actual churn cases, but at the cost of more false positives (lower precision) due to its independence assumption between features. |
+| Random Forest | Strong accuracy and AUC from ensembling multiple trees, but lower recall than Logistic Regression and Naive Bayes, meaning it misses more actual churners despite being accurate overall. |
+| **Overall Winner for your dataset** | **Logistic Regression** — highest MCC (0.4562) and best balance of precision/recall/F1, making it the most reliable model for this churn prediction task. Naive Bayes is the better choice specifically if catching every possible churner (high recall) matters more than avoiding false alarms. |
+
+## Streamlit App Features
+
+- Model selection dropdown (5 trained models)
+- CSV upload for test data
+- Live computation of Accuracy, AUC, Precision, Recall, F1, and MCC
+- Confusion matrix and full classification report displayed per model
+
+## Live App Link
+
+https://raj-sahu-2025ac05527-ml-assignment-2.streamlit.app
