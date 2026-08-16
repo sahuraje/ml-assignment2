@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import pickle, json
+import altair as alt
 from sklearn.metrics import (accuracy_score, roc_auc_score, precision_score,
                               recall_score, f1_score, matthews_corrcoef,
                               confusion_matrix, classification_report)
@@ -17,7 +18,22 @@ accuracy_df = pd.DataFrame({
     "Accuracy": [all_results[m]["Accuracy"] for m in all_results]
 }).sort_values("Accuracy", ascending=False)  # highest accuracy first
 
-st.bar_chart(accuracy_df.set_index("Model"))  # quick visual before upload
+# Altair chart with value labels on top of each bar, and color legend by model
+bar_chart = alt.Chart(accuracy_df).mark_bar().encode(
+    x=alt.X("Model", sort=None, title="Model"),
+    y=alt.Y("Accuracy", title="Accuracy", scale=alt.Scale(domain=[0, 1])),
+    color=alt.Color("Model", legend=alt.Legend(title="Model"))  # adds legend
+)
+
+text_labels = alt.Chart(accuracy_df).mark_text(
+    align="center", baseline="bottom", dy=-3  # dy moves label slightly above bar
+).encode(
+    x=alt.X("Model", sort=None),
+    y="Accuracy",
+    text=alt.Text("Accuracy", format=".4f")  # show value rounded to 4 decimals
+)
+
+st.altair_chart((bar_chart + text_labels).properties(height=400), use_container_width=True)  # combine bars + labels
 
 st.divider()
 
@@ -45,19 +61,27 @@ if uploaded:
     probs = model.predict_proba(X_input)[:, 1]  # needed for AUC
 
     st.subheader(f"Metrics — {selected}")
-    st.write({
-        "Accuracy": round(accuracy_score(y_true, preds), 4),
-        "AUC": round(roc_auc_score(y_true, probs), 4),
-        "Precision": round(precision_score(y_true, preds), 4),
-        "Recall": round(recall_score(y_true, preds), 4),
-        "F1": round(f1_score(y_true, preds), 4),
-        "MCC": round(matthews_corrcoef(y_true, preds), 4)
+    metrics_df = pd.DataFrame({
+        "Metric": ["Accuracy", "AUC", "Precision", "Recall", "F1", "MCC"],
+        "Value": [
+            round(accuracy_score(y_true, preds), 4),
+            round(roc_auc_score(y_true, probs), 4),
+            round(precision_score(y_true, preds), 4),
+            round(recall_score(y_true, preds), 4),
+            round(f1_score(y_true, preds), 4),
+            round(matthews_corrcoef(y_true, preds), 4)
+        ]
     })
+    st.dataframe(metrics_df, use_container_width=True, hide_index=True)  # clean table, no index column
 
     st.subheader("Confusion Matrix")
-    st.write(confusion_matrix(y_true, preds))  # rows=actual, cols=predicted
+    cm = confusion_matrix(y_true, preds)
+    cm_df = pd.DataFrame(cm,
+                          index=["Actual: No Churn", "Actual: Churn"],
+                          columns=["Predicted: No Churn", "Predicted: Churn"])
+    st.dataframe(cm_df, use_container_width=True)   # rows=actual, cols=predicted
 
     st.subheader("Classification Report")
     report_dict = classification_report(y_true, preds, output_dict=True)  # get as dict instead of plain text
     report_df = pd.DataFrame(report_dict).transpose().round(3)  # convert to table, round numbers
-    st.dataframe(report_df, use_container_width=True)  # nice scrollable/formatted table
+    st.dataframe(report_df, use_container_width=True)  # formatted table
